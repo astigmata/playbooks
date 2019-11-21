@@ -1,0 +1,68 @@
+---
+- name: Install awx
+  hosts: localhost
+  become: true
+  become_method: sudo
+  become_user: root
+  vars:
+    install_file: '/awx/installer/install.yml'
+    inventory_file: '/awx/installer/inventory'
+    port: '8080'
+  tasks:
+    - name: Add specified repository into sources list.
+      apt_repository:
+        repo: ppa:ansible/ansible
+        state: present
+    - name: update
+      apt:
+        name: "*"
+        state: latest
+    - name: Install a list of packages
+      apt:
+        pkg:
+          - software-properties-common
+          - ansible
+          - docker.io
+          - python-pip
+          - nodejs
+          - npm
+    - name: python modules needed
+      pip:
+        name:
+          - docker
+          - docker-compose
+          - ansible
+    - name: Clone from dev tag
+      git:
+        repo: 'https://github.com/ansible/awx.git'
+        dest: /awx
+        version: '{{awx_version}}'
+        force: 'yes'
+    - name: Replace postgres_data_dir in file inventory
+      lineinfile:
+        path: {{inventory_file}}
+        regexp: '^postgres_data_dir='
+        line: postgres_data_dir="/var/lib/pgdocker"
+    - name: Replace postgres_data_dir in file inventory
+      lineinfile:
+        path: {{inventory_file}}
+        regexp: '^docker_compose_dir='
+        line: docker_compose_dir="/var/lib/awx"
+    - name: Replace Port for AWX
+      lineinfile:
+        path: {{inventory_file}}
+        regexp: '^host_port='
+        line: host_port={{port}}
+    - name: Uncomment line project_data_dir
+      lineinfile:
+        path: {{inventory_file}}
+        regexp: '^project_data_dir='
+        line: project_data_dir=/var/lib/awx/projects
+    - name: Define Secretkey
+      lineinfile:
+        path: {{inventory_file}}
+        regexp: '^secret_key='
+        line: secret_key='{{SECRET}}'
+    - name: Run playbook inside
+      command:
+        cmd: ansible-playbook -i {{inventory_file}} {{install_file}}
