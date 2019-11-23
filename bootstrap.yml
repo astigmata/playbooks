@@ -20,7 +20,7 @@
   - name: Add my user
     user: >
       name={{ user_name }} 
-      password={{ user_pass }} 
+      # password={{ user_pass }} 
       shell=/bin/bash 
       groups=sudo 
       append=yes 
