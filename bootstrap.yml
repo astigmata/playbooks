@@ -1,7 +1,7 @@
 ---
 - name: Bootstrap server for future ansible runs
   hosts: all
-  remote_user: root
+  remote_user: arnaud
 
   vars: 
     user_name: ansible
