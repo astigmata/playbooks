@@ -1,7 +1,6 @@
 ---
 - name: Bootstrap server for future ansible runs
   hosts: all
-  remote_user: "{{ansible_user}}"
   become: true
   become_user: root
   become_method: sudo
