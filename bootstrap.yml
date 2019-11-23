@@ -6,7 +6,8 @@
   become_user: root
   become_method: sudo
   
-  vars: 
+  vars:
+    host_key_checking: false
     ansible_user: "{{ssh_login}}"
     user_name: ansible
     ansible_become_pass: "{{ssh_password}}"
