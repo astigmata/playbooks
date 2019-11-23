@@ -6,6 +6,7 @@
   become_method: sudo
   
   vars: 
+    ansible_user: "{{ remote_user }}"
     user_name: ansible
     ansible_become_pass: "{{ ansible_ssh_pass }}"
 
