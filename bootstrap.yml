@@ -1,9 +1,13 @@
 ---
 - name: Bootstrap server for future ansible runs
   hosts: all
+  remote_user: jean
+  
   become: true
   
   vars:
+    ansible_ssh_pass: "{{mon_pass}}"
+    ansible_become_password: "{{mon_pass}}"
     host_key_checking: false
     user_name: ansible
 
