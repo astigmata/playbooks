@@ -1,48 +1,57 @@
 ---
 - name: Bootstrap server for future ansible runs
   hosts: all
-  remote_user: "{{ssh_login}}"  
+  remote_user: "{{ssh_login}}"
   become: true
-  
+
   vars:
     ansible_ssh_pass: "{{ssh_pass}}"
     ansible_become_password: "{{ssh_pass}}"
     host_key_checking: false
     user_name: ansible
 
-  tasks: 
-  - name: Update apt cache
-    apt: update_cache=yes
+  tasks:
+    - name: Update apt cache
+      apt: update_cache=yes
 
-  - name: Safe aptitude upgrade
-    apt: upgrade=safe
-    async: 600
-    poll: 5
+    - name: Safe aptitude upgrade
+      apt: upgrade=safe
+      async: 600
+      poll: 5
 
-  - name: Add my user
-    user: >
-      name={{ user_name }}
-      shell=/bin/bash 
-      groups=sudo 
-      append=yes 
-      generate_ssh_key=yes 
-      ssh_key_bits=2048 
-      state=present
+    - name: Make sure we have a 'wheel' group
+      group:
+        name: wheel
+        state: present
 
-  - name: Add my workstation user's public key to the new user
-    authorized_key: 
-      user: "{{ user_name }}"
-      key: "{{ pub_key }}" 
-      state: present
-#    notify: restart ssh
+    - name: Allow 'wheel' group to have passwordless sudo
+      lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: '^%wheel'
+        line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'
 
-  - name: Remove password SSH access
-    lineinfile: 
-      dest: /etc/ssh/sshd_config 
-      regexp: "^PasswordAuthentication" 
-      line: "PasswordAuthentication no" 
-      state: present
+    - name: Add sudoers users to wheel group
+      user: >
+        name="{{ user_name }}"
+        groups=wheel
+        append=yes
+        state=present
+        createhome=yes
 
+    - name: Add my workstation user's public key to the new user
+      authorized_key:
+        user: "{{ user_name }}"
+        key: "{{ pub_key }}"
+        state: present
+
+    - name: Remove password SSH access
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: "^PasswordAuthentication"
+        line: "PasswordAuthentication no"
+        state: present
   handlers:
-  - name: restart ssh
-    service: name=ssh state=restarted
+    - name: restart ssh
+      service: name=ssh state=restarted
