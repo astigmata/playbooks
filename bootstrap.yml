@@ -1,13 +1,13 @@
 ---
 - name: Bootstrap server for future ansible runs
   hosts: all
-  remote_user: arnaud
+  # remote_user: arnaud
   
   become: true
   
   vars:
-    ansible_ssh_pass: azerty
-    ansible_become_password: azerty
+    # ansible_ssh_pass: azerty
+    # ansible_become_password: azerty
     host_key_checking: false
     user_name: ansible
 
