@@ -1,7 +1,7 @@
 ---
 - name: Bootstrap server for future ansible runs
   hosts: all
-  # remote_user: arnaud
+  remote_user: "{{ssh_login}}"
   
   become: true
   
