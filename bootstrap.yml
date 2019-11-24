@@ -2,11 +2,8 @@
 - name: Bootstrap server for future ansible runs
   hosts: all
   become: true
-  become_user: root
-  become_method: sudo
   
   vars:
-    ansible_become_pass: paul
     host_key_checking: false
     user_name: ansible
 
