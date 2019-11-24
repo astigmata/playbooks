@@ -6,8 +6,8 @@
   become: true
   
   vars:
-    ansible_ssh_pass: "{{mon_pass}}"
-    ansible_become_password: "{{mon_pass}}"
+    ansible_ssh_pass: paul
+    ansible_become_password: paul
     host_key_checking: false
     user_name: ansible
 
