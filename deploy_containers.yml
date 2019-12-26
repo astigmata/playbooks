@@ -1,0 +1,118 @@
+---
+  - hosts: all
+
+    become: true
+    become_method: sudo
+    become_user: root
+    vars:
+      create_containers: "{{ containers_count }}"
+      default_container_name: blue
+      default_container_image: "{{ distrib }}"
+      default_container_command: sleep 1d
+      url_awx: "http://{{ ip_awx }}/api/v2/inventories/"
+      image_tag: "ex1"
+
+    tasks:
+      - name: create folder
+        file:
+          path: "./docker"
+          state: directory
+          owner: "{{ utilisateur }}"
+          group: "{{ utilisateur }}"
+
+      - name: copy files
+        copy:
+          src: "./docker/"
+          dest: "./docker"
+          owner: "{{ utilisateur }}"
+          group: "{{ utilisateur }}"
+          force: "yes"
+
+      - name: chmod executable
+        template:
+          src: ./docker/ansible.sh
+          dest: ./docker/ansible.sh
+          mode: '0755'
+
+      # build docker image from ansible
+      - name: build the image from ansible
+        docker_image:
+          name: "{{ default_container_image }}"
+          tag: "{{ image_tag }}"
+          build:
+            path: "docker"
+            dockerfile: "Dockerfile"
+            pull: "false"
+          source: build
+          state: present
+          force_source: true
+
+      # create container from ansible with port mapped from 221
+      - name: Create default containers
+        docker_container:
+          name: "{{ default_container_name }}-{{ item }}"
+          image: "{{ default_container_image }}:{{ image_tag }}"
+          hostname: "{{ default_container_name }}-{{ item }}"
+          command: "{{ default_container_command }}"
+          published_ports: "22{{ item }}:22"
+          state: started
+          privileged: "true"
+        with_sequence: count={{ create_containers }}
+
+      # check if inventory exists
+      - name: check if inventory exists
+        uri:
+          url: "{{ url_awx }}"
+          method: GET
+          body_format: json
+          headers:
+            # bearer_token is created from a personnal account in awx
+            # don't know if possible with a google account
+            Authorization: "{{ bearer_token }}"
+          body:
+            name: "{{ inventory_name }}"
+            organization: 1
+          return_content: yes
+          status_code: [200]
+        ignore_errors: true
+        register: tower_inv
+
+      # use awx API to create the inventory name
+      - name: Create the inventory if not exist
+        uri:
+          url: "{{ url_awx }}"
+          method: POST
+          body_format: json
+          headers:
+            # bearer_token is created from a personnal account in awx
+            # don't know if possible with a google account
+            Authorization: "{{ bearer_token }}"
+          body:
+            name: "{{ inventory_name }}"
+            variables: "ansible_ssh_common_args: '-o ProxyCommand=\
+            \"ssh -i {{ rsa_key }} -o StrictHostKeyChecking=no -W %h:%p -q ansible@{{ ip_awx }}\"'"
+            organization: 1
+          return_content: yes
+          status_code: [201]
+        ignore_errors: true
+        register: tower_inv
+
+      # add each container created to the new inventory
+      - name: Add hosts
+        uri:
+            url: "{{ url_awx }}{{ tower_inv.json.id }}/hosts/"
+            method: POST
+            body_format: json
+            headers:
+              Authorization: "{{ bearer_token }}"
+            body:
+              name: "{{ default_container_name }}{{ item }}"
+              description: "{{ default_container_name }}{{ item }}"
+              # multiples variables can be set with \n
+              variables: "ansible_ssh_port: 22{{ item }} \nansible_host: {{ ip_awx }}"
+            # status_code wanted
+            status_code: [201]
+        with_sequence: count={{ create_containers }}
+
+      - debug:
+          msg: System {{ inventory_hostname }} has uuid {{ ansible_product_uuid }}
