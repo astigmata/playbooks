@@ -1,0 +1,17 @@
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: jenkins-ingress-route
+  namespace: {{ jenkins_namespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Host(`{{ jenkins_dns }}`)
+    kind: Rule
+    services:
+    - name: jenkins-service
+      port: 8080
+  tls:
+    secretName: jenkins-cert

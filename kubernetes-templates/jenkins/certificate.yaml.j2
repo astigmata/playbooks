@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: jenkins-cert
+  namespace: {{ jenkins_namespace }}
+spec:
+  commonName: {{ jenkins_dns }}
+  secretName: jenkins-cert
+  dnsNames:
+    - {{ jenkins_dns }}
+  issuerRef:
+    name: {{ cert_manager_issuer }}
+    kind: ClusterIssuer
