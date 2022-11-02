@@ -1,0 +1,17 @@
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: excalidraw-ingress-route
+  namespace: {{ excalidraw_namespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Host(`{{ excalidraw_dns }}`)
+    kind: Rule
+    services:
+    - name: excalidraw-service
+      port: 3000
+  tls:
+    secretName: excalidraw-cert

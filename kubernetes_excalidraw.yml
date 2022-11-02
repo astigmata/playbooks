@@ -1,0 +1,38 @@
+---
+- name: Kubernetes Excalidraw
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    excalidraw_namespace: excalidraw
+    state: present
+
+  pre_tasks:
+    - name: Assert required vars are defined
+      assert:
+        that:
+          - cert_manager_issuer | length > 0
+          - state in ["absent","present"]
+          - excalidraw_dns | length > 0
+
+    - name: Required Python Library
+      pip:
+        name:
+          - kubernetes
+
+  tasks:
+    - name: Ensure {{ excalidraw_namespace }} namespace exists
+      kubernetes.core.k8s:
+        kind: Namespace
+        name: "{{ excalidraw_namespace }}"
+      when: state == "present"
+
+    - name: Apply manifests from templates
+      kubernetes.core.k8s:
+        template:
+          - path: kubernetes-templates/excalidraw/deployment.yaml.j2
+          - path: kubernetes-templates/excalidraw/service.yaml.j2
+          - path: kubernetes-templates/excalidraw/ingress_route.yaml.j2
+          - path: kubernetes-templates/excalidraw/certificate.yaml.j2
+        namespace: "{{ excalidraw_namespace }}"
+        state: "{{ state }}"
