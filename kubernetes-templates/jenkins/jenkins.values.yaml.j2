@@ -1,0 +1,25 @@
+controller:
+  customInitContainers:
+    - name: set-pvc
+      image: "alpine:3.7"
+      imagePullPolicy: IfNotPresent
+      command: ["chown", "-R", "1000:1000", "{{ jenkins_path }}"]
+      securityContext:
+        runAsUser: 0
+        runAsNonRoot: false
+      volumeMounts:
+        - mountPath: {{ jenkins_path }}
+          name: jenkins-home
+  installPlugins: {{ jenkins_plugins }}
+  ingress:
+    enabled: true
+    apiVersion: "networking.k8s.io/v1"
+    ingressClassName: nginx
+    hostName: {{ jenkins_dns }}
+    annotations:
+      kubernetes.io/tls-acme: "true"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    tls:
+      - secretName: {{ jenkins_dns }}
+        hosts:
+          - "{{ jenkins_dns }}"
