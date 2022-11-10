@@ -11,3 +11,6 @@ Playbook to deploy the greatest tool Excalidraw on kubernetes
 
 ## [kubernetes_pgadmin](kubernetes_pgadmin.yml)
 Playbook to deploy pgadmin4 on a kubernetes cluster from Helm package.
+
+## [kubernetes_minio](kubernetes_minio.yml)
+Playbook to deploy minIO on a kubernetes cluster

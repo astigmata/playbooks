@@ -1,0 +1,44 @@
+---
+- name: Kubernetes MinIO
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    minio_application: minio
+    minio_image: quay.io/minio/minio:latest
+    minio_namespace: minio
+    minio_prefix: minio-
+    state: present
+
+  pre_tasks:
+    - name: Assert required vars are defined
+      assert:
+        that:
+          - cert_manager_issuer | length > 0
+          - minio_dns | length > 0
+          - minio_username | length > 0
+          - minio_pwd | string | length > 0
+          - state in ["absent","present"]
+
+    - name: Required Python Library
+      pip:
+        name:
+          - kubernetes
+
+  tasks:
+    - name: Ensure {{ minio_namespace }} namespace exists
+      kubernetes.core.k8s:
+        kind: Namespace
+        name: "{{ minio_namespace }}"
+      when: state == "present"
+
+    - name: Apply manifests from templates
+      kubernetes.core.k8s:
+        template:
+          - path: kubernetes-templates/minio/secret.yaml.j2
+          - path: kubernetes-templates/minio/deployment.yaml.j2
+          - path: kubernetes-templates/minio/service.yaml.j2
+          - path: kubernetes-templates/minio/ingress_route.yaml.j2
+          - path: kubernetes-templates/minio/certificate.yaml.j2
+        namespace: "{{ minio_namespace }}"
+        state: "{{ state }}"

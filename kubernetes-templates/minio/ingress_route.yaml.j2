@@ -1,0 +1,17 @@
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ minio_prefix }}ingress-route
+  namespace: {{ minio_namespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Host(`{{ minio_dns }}`)
+    kind: Rule
+    services:
+    - name: {{ minio_prefix }}service
+      port: web
+  tls:
+    secretName: {{ minio_prefix }}cert

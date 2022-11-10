@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ minio_prefix }}cert
+  namespace: {{ minio_namespace }}
+spec:
+  commonName: {{ minio_dns }}
+  secretName: {{ minio_prefix}}cert
+  dnsNames:
+    - {{ minio_dns }}
+  issuerRef:
+    name: {{ cert_manager_issuer }}
+    kind: ClusterIssuer
