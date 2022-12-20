@@ -1,0 +1,47 @@
+---
+- name: Kubernetes Concourse
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    force: false
+    concourse_helm_chart_ref: concourse/concourse
+    concourse_helm_chart_repo_url: https://concourse-charts.storage.googleapis.com
+    concourse_helm_chart_version: 17.1.0
+    concourse_namespace: concourse-ci
+    state: "present"
+    status_job: "{{ 'Deploy' if state == 'present' else 'Remove' }}"
+
+  pre_tasks:
+    - name: Assert required vars are defined
+      assert:
+        that:
+          - state in ["absent","present"]
+
+    - name: Required Python Library
+      pip:
+        name:
+          - kubernetes
+
+  tasks:
+    - name: Enable HELM repo for Concourse
+      kubernetes.core.helm_repository:
+        name: concourse
+        repo_url: "{{ concourse_helm_chart_repo_url }}"
+
+    - name: Ensure {{ concourse_namespace }} namespace is present
+      kubernetes.core.k8s:
+        name: "{{ concourse_namespace }}"
+        kind: Namespace
+      when: state == "present"
+
+    - name: "{{ status_job }} concourse"
+      kubernetes.core.helm:
+        name: concourse
+        chart_ref: "{{ concourse_helm_chart_ref }}"
+        chart_version: "{{ concourse_helm_chart_version }}"
+        update_repo_cache: true
+        # release_values: "{{ lookup('template', 'kubernetes-templates/concourse/concourse.values.yaml.j2') | from_yaml }}"
+        release_namespace: "{{ concourse_namespace }}"
+        release_state: "{{ state }}"
+        force: "{{ force | bool }}"
