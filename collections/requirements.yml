@@ -1,3 +1,5 @@
+---
+collections:
 - src: https://github.com/ansible-collections/kubernetes.core.git
   name: kubernetes.core
   version: 2.3.2
