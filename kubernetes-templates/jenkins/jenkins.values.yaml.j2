@@ -18,7 +18,7 @@ controller:
     hostName: {{ jenkins_dns }}
     annotations:
       kubernetes.io/tls-acme: "true"
-      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      cert-manager.io/cluster-issuer: {{ cert_manager_issuer }}
     tls:
       - secretName: {{ jenkins_dns }}
         hosts:
