@@ -12,9 +12,9 @@ controller:
           name: jenkins-home
   installPlugins: {{ jenkins_plugins }}
   ingress:
-    enabled: true
+    enabled: false # keep false with Traefik ingressroute
     apiVersion: "networking.k8s.io/v1"
-    ingressClassName: nginx
+    ingressClassName: traefik
     hostName: {{ jenkins_dns }}
     annotations:
       kubernetes.io/tls-acme: "true"

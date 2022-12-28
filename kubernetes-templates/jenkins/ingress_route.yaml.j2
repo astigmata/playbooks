@@ -11,7 +11,7 @@ spec:
   - match: Host(`{{ jenkins_dns }}`)
     kind: Rule
     services:
-    - name: jenkins-service
-      port: 8080
+    - name: jenkins
+      port: http
   tls:
     secretName: jenkins-cert
