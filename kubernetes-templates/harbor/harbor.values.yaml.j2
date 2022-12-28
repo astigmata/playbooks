@@ -1,0 +1,21 @@
+# more settings here: https://github.com/goharbor/harbor-helm#configuration
+externalURL: https://{{ harbor_dns }}
+harborAdminPassword: "{{ harbor_admin_pwd }}"
+expose:
+  type: clusterIP
+  tls:
+    enabled: False
+persistence:
+  enabled: True
+chartmuseum:
+  enabled: False
+trivy:
+  enabled: False
+notary:
+  enabled: True
+metrics:
+  enabled: False
+trace:
+  enabled: False
+cache:
+  enabled: False
