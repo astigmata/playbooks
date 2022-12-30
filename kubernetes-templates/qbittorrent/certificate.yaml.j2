@@ -1,0 +1,13 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: qbittorrent-cert
+spec:
+  commonName: {{ qbittorrent_dns }}
+  secretName: qbittorrent-cert
+  dnsNames:
+    - {{ qbittorrent_dns }}
+  issuerRef:
+    name: {{ cert_manager_issuer }}
+    kind: ClusterIssuer

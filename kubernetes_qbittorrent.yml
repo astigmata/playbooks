@@ -1,0 +1,55 @@
+---
+- name: Kubernetes Qbittorrent
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    downloads_folder: /srv/downloads
+    force: false
+    qbittorrent_version: 4.5.0
+    qbittorrent_image: lscr.io/linuxserver/qbittorrent:{{ qbittorrent_version }}
+    qbittorrent_namespace: qbittorrent
+    qbittorrent_storage_class: microk8s-hostpath
+    state: "present"
+    status_job: "{{ 'Deploy' if state == 'present' else 'Remove' }}"
+
+  pre_tasks:
+    - name: Assert required vars are defined
+      assert:
+        that:
+          - cert_manager_issuer | length > 0
+          - state in ["absent","present"]
+          - qbittorrent_dns | length > 0
+
+    - name: Required Python Library
+      pip:
+        name:
+          - kubernetes
+
+  tasks:
+    - name: Ensure {{ qbittorrent_namespace }} namespace is present
+      kubernetes.core.k8s:
+        name: "{{ qbittorrent_namespace }}"
+        kind: Namespace
+      when: state == "present"
+
+    - name: Do not delete config when undeploy
+      kubernetes.core.k8s:
+        template:
+          - path: kubernetes-templates/qbittorrent/persistent_volume_claim.yaml.j2
+        apply: "{{ state == 'present' }}"
+        state: "{{ state }}"
+      when:
+        - state == 'present'
+        - purge_config | default(false) | bool
+
+    - name: Apply manifests from templates
+      kubernetes.core.k8s:
+        template:
+          - path: kubernetes-templates/qbittorrent/certificate.yaml.j2
+          - path: kubernetes-templates/qbittorrent/ingress_route.yaml.j2
+          - path: kubernetes-templates/qbittorrent/deployment.yaml.j2
+          - path: kubernetes-templates/qbittorrent/service.yaml.j2
+        namespace: "{{ qbittorrent_namespace }}"
+        apply: "{{ state == 'present' }}"
+        state: "{{ state }}"
