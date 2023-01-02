@@ -14,3 +14,6 @@ Playbook to deploy pgadmin4 on a kubernetes cluster from Helm package.
 
 ## [kubernetes_harbor](kubernetes_harbor.yml)
 Playbook to deploy Harbor on a kubernetes cluster from Helm package.
+
+## [kubernetes_qbittorrent](kubernetes_qbittorrent.yml)
+Playbook to deploy qbittorrent on kubernetes.
