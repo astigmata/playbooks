@@ -1,0 +1,26 @@
+ingress:
+  nginx: false
+
+bitbucket:
+  resources:
+    container:
+      requests:
+        cpu: 2
+        memory: 2G
+    jvm:
+      maxHeap: 1g
+      minHeap: 512m
+  sysadminCredentials:
+    emailAddressSecretKey: "{{ bitbucket_email }}"
+    passwordSecretKey: "{{ bitbucket_pwd }}"
+    usernameSecretKey: "{{ bitbucket_username }}"
+
+database:
+  credentials:
+    usernameSecretKey: "{{ bitbucket_db_username }}"
+    passwordSecretKey: "{{ bitbucket_db_pwd }}"
+
+volumes:
+  localHome:
+    persistentVolumeClaim:
+      create: true

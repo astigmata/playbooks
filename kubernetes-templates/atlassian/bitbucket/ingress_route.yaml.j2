@@ -1,0 +1,16 @@
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: bitbucket-ingress-route
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Host(`{{ bitbucket_dns }}`)
+    kind: Rule
+    services:
+      - name: {{ bitbucket_app }}
+        port: 80
+  tls:
+    secretName: bitbucket-cert
