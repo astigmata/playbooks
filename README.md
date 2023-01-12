@@ -17,3 +17,6 @@ Playbook to deploy Harbor on a kubernetes cluster from Helm package.
 
 ## [kubernetes_qbittorrent](kubernetes_qbittorrent.yml)
 Playbook to deploy qbittorrent on kubernetes.
+
+## [kubernetes_bitbucket_server](kubernetes_bitbucket_server.yml)
+Playbook to deploy BitBucket Server Atlassian from Helm package.
