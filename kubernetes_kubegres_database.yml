@@ -10,6 +10,13 @@
     postgres_database_size: 200Mi
     postgres_namespace: postgres
 
+  pre_tasks:
+    - name: Assert required vars are defined
+      assert:
+        that:
+          - state in ["absent","present"]
+          - postgres_superuser_pwd | string | length > 0
+          - postgres_replica_pwd | string | length > 0
   tasks:
     - name: Ensure {{ postgres_namespace }} namespace is present
       kubernetes.core.k8s:

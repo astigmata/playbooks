@@ -14,8 +14,6 @@
       assert:
         that:
           - state in ["absent","present"]
-          - postgres_superuser_pwd | string | length > 0
-          - postgres_replica_pwd | string | length > 0
 
   tasks:
     # Download and apply manifest
@@ -25,7 +23,7 @@
         dest: "{{ kubegres_definition_path }}"
         mode: '0664'
 
-    - name: Install crd manifest to the cluster.
+    - name: Install CRD manifest to the cluster.
       kubernetes.core.k8s:
         state: present
         src: "{{ kubegres_definition_path }}"
