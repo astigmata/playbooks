@@ -1,0 +1,36 @@
+- name: Playbook to deploy kubegres operator for postgres on a kubernetes cluster
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    state: present
+    kubegres_repository: reactive-tech/kubegres
+    kubegres_version: v1.16
+    kubegres_definition_url: https://raw.githubusercontent.com/{{ kubegres_repository }}/{{ kubegres_version }}/kubegres.yaml
+    kubegres_definition_path: ~/kubegres_definition.yaml
+
+  pre_tasks:
+    - name: Assert required vars are defined
+      assert:
+        that:
+          - state in ["absent","present"]
+          - postgres_superuser_pwd | string | length > 0
+          - postgres_replica_pwd | string | length > 0
+
+  tasks:
+    # Download and apply manifest
+    - name: Download CRD
+      ansible.builtin.get_url:
+        url: "{{ kubegres_definition_url }}"
+        dest: "{{ kubegres_definition_path }}"
+        mode: '0664'
+
+    - name: Install crd manifest to the cluster.
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ kubegres_definition_path }}"
+
+    - name: Clean definitions
+      file:
+        path: "{{ kubegres_definition_path }}"
+        state: absent
