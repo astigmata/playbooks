@@ -1,0 +1,34 @@
+- name: Playbook to deploy kubegres postgres database on a kubernetes cluster
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    state: present
+    postgres_replica_count: 1 # less than 2 means only a master, no replica
+    postgres_version: 14.1
+    postgres_image: postgres:{{ postgres_version }}
+    postgres_database_size: 200Mi
+    postgres_namespace: postgres
+
+  pre_tasks:
+    - name: Assert required vars are defined
+      assert:
+        that:
+          - state in ["absent","present"]
+          - postgres_superuser_pwd | string | length > 0
+          - postgres_replica_pwd | string | length > 0
+  tasks:
+    - name: Ensure {{ postgres_namespace }} namespace is present
+      kubernetes.core.k8s:
+        name: "{{ postgres_namespace }}"
+        kind: Namespace
+      when: state == "present"
+
+    - name: Apply manifests from templates
+      kubernetes.core.k8s:
+        template:
+          - path: kubernetes-templates/operator/kubegres/secret.yaml.j2
+          - path: kubernetes-templates/operator/kubegres/kubegres.yaml.j2
+        namespace: "{{ postgres_namespace }}"
+        apply: "{{ state == 'present' }}"
+        state: "{{ state }}"

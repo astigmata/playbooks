@@ -20,3 +20,9 @@ Playbook to deploy qbittorrent on kubernetes.
 
 ## [kubernetes_bitbucket_server](kubernetes_bitbucket_server.yml)
 Playbook to deploy BitBucket Server Atlassian from Helm package.
+
+## [kubernetes_kubegres_operator](kubernetes_kubegres_operator.yml)
+Playbook to deploy Kubegres Operator from Helm package.
+
+## [kubernetes_kubegres_database](kubernetes_kubegres_database.yml)
+Playbook to deploy Postgres database with Kubegres Operator.
