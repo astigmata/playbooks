@@ -1,0 +1,13 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: awx-cert
+spec:
+  commonName: {{ awx_dns }}
+  secretName: awx-cert
+  dnsNames:
+    - {{ awx_dns }}
+  issuerRef:
+    name: {{ cert_manager_issuer }}
+    kind: ClusterIssuer

@@ -4,6 +4,7 @@
   gather_facts: false
 
   vars:
+    cert_manager_issuer: cert-manager-letsencrypt-issuer
     force: false
     state: present
     awx_admin: Admin
@@ -21,6 +22,7 @@
     - name: Assert required vars are defined
       assert:
         that:
+          - awx_dns | length > 0
           - state in ["absent","present"]
           - awx_postgres_username | length > 0
           - awx_postgres_pwd | string | length > 0
@@ -47,3 +49,12 @@
         release_namespace: "{{ awx_operator_namespace }}"
         release_state: "{{ state }}"
         force: "{{ force | bool }}"
+
+    - name: Apply manifests from templates
+      kubernetes.core.k8s:
+        template:
+          - path: kubernetes-templates/operator/awx/certificate.yaml.j2
+          - path: kubernetes-templates/operator/awx/ingress_route.yaml.j2
+        namespace: "{{ awx_operator_namespace }}"
+        apply: "{{ state == 'present' }}"
+        state: "{{ state }}"

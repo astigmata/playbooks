@@ -47,6 +47,7 @@ postgres_username: awx
 
 Deploy [kubernetes_awx_operator](kubernetes_awx_operator.yml) with:
 ```yaml
+awx_dns: awx.mydomain.com
 awx_postgres_username: awx
 awx_postgres_pwd: myPostgresPassword
 awx_postgres_database: awx
@@ -57,6 +58,7 @@ awx_external_database: true
 
 Deploy [kubernetes_awx_operator](kubernetes_awx_operator.yml) with:
 ```yaml
+awx_dns: awx.mydomain.com
 awx_postgres_username: awx
 awx_postgres_pwd: myPostgresPassword
 awx_postgres_database: awx
