@@ -7,6 +7,7 @@
     postgres_replica_count: 1 # less than 2 means only a master, no replica
     postgres_version: 14.1
     postgres_image: postgres:{{ postgres_version }}
+    postgres_database_name: postgres
     postgres_database_size: 200Mi
     postgres_namespace: postgres
 
@@ -28,6 +29,7 @@
       kubernetes.core.k8s:
         template:
           - path: kubernetes-templates/operator/kubegres/secret.yaml.j2
+          - path: kubernetes-templates/operator/kubegres/configmap.yaml.j2
           - path: kubernetes-templates/operator/kubegres/kubegres.yaml.j2
         namespace: "{{ postgres_namespace }}"
         apply: "{{ state == 'present' }}"
