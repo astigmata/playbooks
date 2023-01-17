@@ -1,7 +1,7 @@
 apiVersion: kubegres.reactive-tech.io/v1
 kind: Kubegres
 metadata:
-  name: mypostgres
+  name: {{ postgres_database_name }}
   namespace: {{ postgres_namespace }}
 
 spec:
@@ -11,15 +11,23 @@ spec:
    database:
       size: "{{ postgres_database_size }}"
 
+   customConfig: {{ postgres_database_name }}-conf
+
    env:
+      - name: POSTGRES_MY_DB_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: {{ postgres_database_name }}-secret
+            key: customUserPassword
+
       - name: POSTGRES_PASSWORD
         valueFrom:
            secretKeyRef:
-              name: mypostgres-secret
+              name: {{ postgres_database_name }}-secret
               key: superUserPassword
 
       - name: POSTGRES_REPLICATION_PASSWORD
         valueFrom:
            secretKeyRef:
-              name: mypostgres-secret
+              name: {{ postgres_database_name }}-secret
               key: replicationUserPassword
