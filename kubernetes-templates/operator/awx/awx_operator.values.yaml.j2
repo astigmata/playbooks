@@ -1,0 +1,19 @@
+AWX:
+  # enable use of awx-deploy template
+  enabled: true
+  name: awx
+  spec:
+    admin_user: {{ awx_admin }}
+
+  # configurations for external postgres instance
+  postgres:
+    enabled: {{ awx_external_database }}
+    host: {{ awx_postgres_host }}
+    port: {{ awx_postgres_port }}
+    dbName: {{ awx_postgres_database }}
+    username: {{ awx_postgres_username }}
+    # for secret management, pass in the password independently of this file
+    # at the command line, use --set AWX.postgres.password
+    password: {{ awx_postgres_pwd }}
+    sslmode: prefer
+    type: unmanaged
