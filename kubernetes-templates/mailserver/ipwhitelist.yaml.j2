@@ -1,0 +1,7 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: MiddlewareTCP
+metadata:
+  name: mailserver-ipwhitelist
+spec:
+  ipWhiteList:
+    sourceRange: {{ allowed_ip_list }}

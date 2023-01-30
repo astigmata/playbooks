@@ -63,3 +63,6 @@ awx_postgres_username: awx
 awx_postgres_pwd: myPostgresPassword
 awx_postgres_database: awx
 ```
+
+## [kubernetes_docker_mailserver](kubernetes_docker_mailserver.yml)
+Playbook to deploy a mail server ( with **smtps** / **imaps**) on a kubernetes cluster.

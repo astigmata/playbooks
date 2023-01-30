@@ -1,0 +1,22 @@
+pod:
+  dockermailserver:
+    override_hostname: {{ mail_dns }}
+
+domains:
+  - {{ mail_dns }}
+
+demoMode:
+  enabled: true # fix needed to be false https://github.com/docker-mailserver/docker-mailserver-helm/pull/72
+
+ssl:
+  issuer:
+    name: {{ cert_manager_issuer }}
+    kind: ClusterIssuer
+  dnsname: {{ domain_name }}
+  dns01provider: {{ mail_dns }}
+
+service:
+  type: ClusterIP
+
+persistence:
+  size: 10Gi

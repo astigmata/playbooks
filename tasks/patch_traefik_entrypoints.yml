@@ -1,0 +1,40 @@
+- name: Get a list of all service objects
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: DaemonSet
+    namespace: traefik
+  register: daemon
+
+- name: Get current values from Traefik DaemonSet
+  set_fact:
+    patch_line: --entryPoints.{{ item.name }}.address=:{{ item.hostPort }}/tcp
+    my_args: "{{ daemon.resources.0.spec.template.spec.containers.0.args }}"
+    my_ports: "{{ daemon.resources.0.spec.template.spec.containers.0.ports }}"
+
+- name: Prepare patch if state is absent
+  set_fact:
+    my_args: "{{ my_args | difference([patch_line]) }}"
+    my_ports: "{{ my_ports | difference([item]) }}"
+  when: state == 'absent'
+
+- name: Prepare patch if state is present
+  set_fact:
+    my_args: "{{ my_args | union([patch_line]) }}"
+    my_ports: "{{ my_ports | union([item]) }}"
+  when: state == 'present'
+
+- name: Apply patch once to Traefik DaemonSet
+  kubernetes.core.k8s_json_patch:
+    kind: DaemonSet
+    namespace: traefik
+    name: traefik
+    patch:
+      - op: replace
+        path: /spec/template/spec/containers/0/args
+        value: "{{ my_args }}"
+      - op: replace
+        path: /spec/template/spec/containers/0/ports
+        value: "{{ my_ports }}"
+  when: my_args | length > 0
+
+# TODO: restart automatically each Treafik pod like kubectl rollout
