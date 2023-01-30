@@ -1,0 +1,77 @@
+---
+- name: Kubernetes docker mailserver
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    force: false
+    mail_dns: "mail.{{ domain_name }}"
+    smtp_dns: "smtp.{{ domain_name }}"
+    imap_dns: "imap.{{ domain_name }}"
+    mailserver_app: docker-mailserver
+    mailserver_helm_chart_ref: docker-mailserver/docker-mailserver
+    mailserver_helm_chart_repo_url: https://docker-mailserver.github.io/docker-mailserver-helm/
+    mailserver_helm_chart_version: 1.0.1
+    mailserver_namespace: docker-mailserver
+    state: "present"
+    status_job: "{{ 'Deploy' if state == 'present' else 'Remove' }}"
+    entrypoints:
+    - name: smtps
+      hostPort: 465
+      containerPort: 465
+      protocol: TCP
+    - name: imaps
+      hostPort: 993
+      containerPort: 993
+      protocol: TCP
+
+  pre_tasks:
+    - name: Assert required vars are defined
+      assert:
+        that:
+          - cert_manager_issuer | length > 0
+          - state in ["absent","present"]
+          - domain_name | length > 0
+          - allowed_ip_list | length > 0
+
+    - name: Required Python Library
+      pip:
+        name:
+          - kubernetes
+
+  tasks:
+    - name: Enable HELM repo for Harbor
+      kubernetes.core.helm_repository:
+        name: docker-mailserver
+        repo_url: "{{ mailserver_helm_chart_repo_url }}"
+
+    - name: Ensure {{ mailserver_namespace }} namespace is present
+      kubernetes.core.k8s:
+        name: "{{ mailserver_namespace }}"
+        kind: Namespace
+      when: state == "present"
+
+    - name: "{{ status_job }} docker-mailserver"
+      kubernetes.core.helm:
+        name: "{{ mailserver_app }}"
+        chart_ref: "{{ mailserver_helm_chart_ref }}"
+        chart_version: "{{ mailserver_helm_chart_version }}"
+        update_repo_cache: true
+        release_values: "{{ lookup('template', 'kubernetes-templates/mailserver/mailserver.values.yaml.j2') | from_yaml }}"
+        release_namespace: "{{ mailserver_namespace }}"
+        release_state: "{{ state }}"
+        force: "{{ force | bool }}"
+
+    - name: Apply manifests from templates
+      kubernetes.core.k8s:
+        template:
+          - path: kubernetes-templates/mailserver/certificate.yaml.j2
+          - path: kubernetes-templates/mailserver/ingress_route_tcp.yaml.j2
+          - path: kubernetes-templates/mailserver/ipwhitelist.yaml.j2
+        namespace: "{{ mailserver_namespace }}"
+        apply: "{{ state == 'present' }}"
+        state: "{{ state }}"
+
+    - name: "{{ status_job }} entrypoints in Traefik"
+      include_tasks: tasks/patch_traefik_entrypoints.yml
+      with_items: "{{ entrypoints }}"
