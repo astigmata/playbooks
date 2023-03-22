@@ -1,0 +1,22 @@
+- name: test cert creation from ansible
+  hosts: localhost
+
+  vars:
+    api_key: 914c06278a6dadcf125f4b275598c749
+    my_dns: prom.mondomain.com
+    my_csr: "-----BEGIN CERTIFICATE REQUEST-----
+
+-----END CERTIFICATE REQUEST-----"
+
+  tasks:
+    - name: Create draft certificate
+      ansible.builtin.uri:
+        url: https://api.zerossl.com/certificates?access_key={{ api_key }}
+        method: POST
+        body_format: form-urlencoded
+        body:
+          certificate_csr: "{{ my_csr }}"
+          certificate_domains: "{{ my_dns }}"
+          certificate_validity_days: 90
+        status_code: 200
+      register: creation
