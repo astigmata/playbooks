@@ -1,0 +1,60 @@
+---
+- name: Deploy MicroK8s with HA on Debian
+  hosts: all
+  become: yes
+
+  vars:
+    nodes:
+      - node1
+      - node2
+      - node3
+
+  tasks:
+    - name: Install dependencies for MicroK8s
+      apt:
+        name: snapd
+        state: present
+
+    - name: Install MicroK8s on all nodes
+      snap:
+        name: microk8s
+        classic: true
+        state: present
+
+    - name: Add all nodes to the MicroK8s cluster
+      shell: "microk8s add-node --token={{ hostvars[groups['master'][0]]['microk8s_token'] }} {{ inventory_hostname }}"
+      when: inventory_hostname in nodes and inventory_hostname != groups['master'][0]
+      register: join_result
+      changed_when: join_result.stdout_lines[0] | regex_search('Node joined successfully')
+
+    - name: Get MicroK8s token on the master node
+      shell: "microk8s add-node | awk '/^Token:/ { print $2 }'"
+      register: token_output
+      changed_when: false
+
+    - name: Set the MicroK8s token as a fact on the master node
+      set_fact:
+        microk8s_token: "{{ token_output.stdout_lines[0] }}"
+      when: "'master' in group_names"
+
+    - name: Enable HA mode on the master node
+      shell: "microk8s enable ha-cluster"
+      when: "'master' in group_names"
+
+    - name: Wait for all nodes to join the cluster
+      shell: "microk8s kubectl get no | grep Ready | wc -l"
+      register: node_count
+      until: node_count.stdout_lines[0] == "{{ groups['master']|length }}"
+      retries: 10
+      delay: 10
+      when: "'master' in group_names"
+
+    - name: Check the status of the cluster
+      shell: "microk8s kubectl get no"
+      register: cluster_status
+      when: "'master' in group_names"
+
+    - name: Display the status of the cluster
+      debug:
+        var: cluster_status.stdout_lines
+      when: "'master' in group_names"
