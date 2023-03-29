@@ -1,0 +1,42 @@
+---
+- name: Deploy Graylog with OpenSearch
+  hosts: graylog_servers
+  become: true
+
+  vars:
+    graylog_version: "4.2.1"
+    opensearch_host: "opensearch.example.com"
+    opensearch_port: "9200"
+
+  tasks:
+    - name: Install Graylog repository
+      apt_key:
+        url: https://packages.graylog2.org/repo/packages/graylog-{{ graylog_version }}.gpg
+        state: present
+      apt_repository:
+        repo: "deb https://packages.graylog2.org/repo/debian/ stable {{ graylog_version }}"
+
+    - name: Install Graylog
+      apt:
+        name: graylog-server
+        state: present
+
+    - name: Configure Graylog
+      template:
+        src: templates/graylog.conf.j2
+        dest: /etc/graylog/server/server.conf
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Restart Graylog
+      service:
+        name: graylog-server
+        state: restarted
+
+  handlers:
+    - name: Reload Graylog
+      service:
+        name: graylog-server
+        state: reloaded
+

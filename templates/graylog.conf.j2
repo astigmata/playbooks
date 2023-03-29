@@ -1,0 +1,18 @@
+# Graylog Configuration
+
+is_master = true
+password_secret = {{ ansible_password_secret }}
+root_password_sha2 = {{ ansible_root_password_sha2 }}
+root_timezone = UTC
+
+elasticsearch_hosts = http://{{ opensearch_host }}:{{ opensearch_port }}
+elasticsearch_request_timeout = 1m
+elasticsearch_connect_timeout = 10s
+elasticsearch_socket_timeout = 60s
+
+rest_listen_uri = http://0.0.0.0:9000/api/
+web_listen_uri = http://0.0.0.0:9000/
+
+# Set your timezone here. For example, "-Duser.timezone=America/New_York"
+# See http://www.joda.org/joda-time/timezones.html for a list of valid time zones.
+# JAVA_OPTS="-Duser.timezone=UTC"
